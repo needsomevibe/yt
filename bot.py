@@ -2,6 +2,7 @@ import logging
 import asyncio
 import time
 import os
+import threading
 import aiohttp
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -247,7 +248,13 @@ async def handle_text(message: types.Message):
 async def main():
     # Удаляем webhook перед запуском
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, skip_updates=True)
+    # В потоках нельзя ставить сигнальные хендлеры — отключаем их
+    is_main_thread = threading.current_thread() is threading.main_thread()
+    await dp.start_polling(
+        bot,
+        skip_updates=True,
+        handle_signals=is_main_thread,
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
