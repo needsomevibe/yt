@@ -78,7 +78,13 @@ questions = [
 user_data = {}
 
 async def generate_personal_link(user_name: str):
-    """Создает персональную пригласительную ссылку на канал через Telegram API"""
+    """Создает персональную пригласительную ссылку на канал через Telegram API.
+
+    Возвращает:
+      - строку с URL при успехе
+      - URL из переменной окружения FALLBACK_CHANNEL_URL, если задана и персональная ссылка не создана
+      - None при неудаче (в этом случае кнопку-ссылку не добавляем)
+    """
     try:
         url = f"https://api.telegram.org/bot{API_TOKEN}/createChatInviteLink"
         data = {
@@ -87,7 +93,7 @@ async def generate_personal_link(user_name: str):
             "expire_date": int(time.time()) + 86400,  # 24 часа
             "member_limit": 1  # только один человек
         }
-        
+
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data) as response:
                 result = await response.json()
@@ -95,11 +101,11 @@ async def generate_personal_link(user_name: str):
                     return result["result"]["invite_link"]
                 else:
                     logging.error(f"Ошибка создания ссылки: {result}")
-                    return f"К сожалению, не удалось создать персональную ссылку. Обратитесь к администратору."  # Fallback ссылка
-                    
     except Exception as e:
         logging.error(f"Ошибка при создании персональной ссылки: {e}")
-        return f"https://t.me/your_channel"  # Fallback ссылка
+
+    fallback = os.getenv("FALLBACK_CHANNEL_URL")
+    return fallback if fallback else None
 
 def get_keyboard(options):
     kb = InlineKeyboardMarkup(inline_keyboard=[])
@@ -229,7 +235,7 @@ async def handle_answer(callback: types.CallbackQuery):
                 else:
                     await callback.message.edit_text(
                         f"🎉 Поздравляю! Вы успешно сдали тест с {score} баллами из {len(questions)}!\n\n"
-                        "К сожалению, не удалось создать персональную ссылку. Обратитесь к администратору.",
+                        "Ссылка не создана. Обратитесь к администратору или ожидайте приглашение.",
                     )
             else:
                 kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Пройти снова", callback_data="start_test")]])
