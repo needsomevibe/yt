@@ -241,7 +241,7 @@ async def handle_answer(callback: types.CallbackQuery):
                 kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Пройти снова", callback_data="start_test")]])
                 await callback.message.edit_text(
                     f"❌ У Вас {score} баллов из {len(questions)}. К сожалению, есть ошибки.\n"
-                    "Прочтите правила и попробуйте пройти снова 😉",
+                    "Прочтите правила и попробуйте пройти снова 😉. Если будут вопросы, обратитесь к вашему куратору: @YEats_aleksei",
                     reply_markup=kb
                 )
 
