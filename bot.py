@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import time
+import os
 import aiohttp
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -10,9 +11,14 @@ from aiogram.fsm.state import State, StatesGroup
 import random
 import string
 
-API_TOKEN = "7717761495:AAHBleJqpz0MxP1kCrQor-RaP6OlQJIKChw"
-ADMIN_ID = 939233229  # Замените на ваш ID администратора
-CHAT_ID = "-1003046300510"  # ID вашего канала
+API_TOKEN = os.getenv("BOT_TOKEN", "")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))  # Установите в Render переменную ADMIN_ID
+CHAT_ID = os.getenv("CHAT_ID", "")  # Установите в Render переменную CHAT_ID
+
+if not API_TOKEN or not CHAT_ID or not ADMIN_ID:
+    logging.warning(
+        "BOT_TOKEN, CHAT_ID или ADMIN_ID не заданы в переменных окружения."
+    )
 
 logging.basicConfig(level=logging.INFO)
 
@@ -208,16 +214,17 @@ async def handle_answer(callback: types.CallbackQuery):
                 user_name = callback.from_user.first_name or "Пользователь"
                 personal_link = await generate_personal_link(user_name)
                 if personal_link:
-                    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Перейти в канал", url=personal_link)]])
-                    await callback.message.edit_text(
-    f"🎉 Поздравляю! Вы успешно сдали тест с {score} баллами из {len(questions)}!\n\n"
-    f"🔗 Ваша персональная ссылка на канал:\n{personal_link}\n\n"
-    "Если будут вопросы — смело обращайтесь к вашему куратору:\n"
-    "👉 @YEats_aleksei\n\n"
-    "Нажмите кнопку ниже, чтобы перейти в канал 👇",
-    reply_markup=kb
-)
-
+                    kb = InlineKeyboardMarkup(
+                        inline_keyboard=[[InlineKeyboardButton(text="Перейти в канал", url=personal_link)]]
+                    )
+                    text = (
+                        f"🎉 Поздравляю! Вы успешно сдали тест с {score} баллами из {len(questions)}!\n\n"
+                        f"🔗 Ваша персональная ссылка на канал:\n{personal_link}\n\n"
+                        "Если будут вопросы — смело обращайтесь к вашему куратору:\n"
+                        "👉 @YEats_aleksei\n\n"
+                        "Нажмите кнопку ниже, чтобы перейти в канал 👇"
+                    )
+                    await callback.message.edit_text(text, reply_markup=kb)
                 else:
                     await callback.message.edit_text(
                         f"🎉 Поздравляю! Вы успешно сдали тест с {score} баллами из {len(questions)}!\n\n"
